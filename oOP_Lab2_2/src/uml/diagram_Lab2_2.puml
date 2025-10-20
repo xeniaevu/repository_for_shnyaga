@@ -1,0 +1,49 @@
+@startuml
+
+enum TariffType {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+class Tariff {
+    - TariffType type
+    - double priceMounth
+    - double pricePerMb
+    + Tariff(TariffType, double, double)
+    + double calculateCost(double)
+    + TariffType getType()
+    + double getpriceMounth()
+    + double getPricePerMb()
+    + String toString()
+}
+
+class Client {
+    - String name
+    - double trafficMb
+    - Tariff tariff
+    + Client(String, Tariff)
+    + void addTraffic(double)
+    + double getCost()
+    + String getName()
+    + Tariff getTariff()
+    + double getTrafficMb()
+    + String toString()
+}
+
+class Provider {
+    - List<Tariff> tariffs
+    - List<Client> clients
+    + void addTariff(Tariff)
+    + void addClient(Client)
+    + List<Tariff> getTariffs()
+    + List<Client> getClients()
+    + Client findTopPayer()
+}
+
+TariffType <|-- Tariff
+Tariff "1" <-- "1" Client : тариф
+Tariff "1" <-- "0..*" Provider : тарифы
+Client "1" <-- "0..*" Provider : клиенты
+
+@enduml
