@@ -1,3 +1,5 @@
-public interface CostStrategy {
-    double calculateCost(double trafficMb, Tariff tariff);
+import java.io.Serializable;
+
+public interface CostStrategy extends Serializable {
+    double calculateCost(double mb, Tariff tariff);
 }

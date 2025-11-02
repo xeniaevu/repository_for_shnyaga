@@ -1,8 +1,12 @@
-public class Client {
+import java.io.Serializable;
+
+public class Client implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String name;
     private double trafficMb;
     private Tariff tariff;
-    private CostStrategy costStrategy; // стратегия подсчёта стоимости
+    private CostStrategy costStrategy;
 
     public Client(String name, Tariff tariff, CostStrategy costStrategy) {
         this.name = name;
@@ -23,12 +27,28 @@ public class Client {
         return name;
     }
 
+    public double getTrafficMb() {
+        return trafficMb;
+    }
+
     public Tariff getTariff() {
         return tariff;
     }
 
-    public double getTrafficMb() {
-        return trafficMb;
+    public CostStrategy getCostStrategy() {
+        return costStrategy;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setTariff(Tariff tariff) {
+        this.tariff = tariff;
+    }
+
+    public void setCostStrategy(CostStrategy costStrategy) {
+        this.costStrategy = costStrategy;
     }
 
     @Override

@@ -1,4 +1,8 @@
-public class Tariff {
+import java.io.Serializable;
+
+public class Tariff implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private TariffType type;
     private double priceMounth;
     private double pricePerMb;
