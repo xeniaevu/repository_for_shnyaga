@@ -1,0 +1,242 @@
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Provider {
+
+    private static final String URL = "jdbc:postgresql://localhost:5432/isp_provider";
+    private static final String USER = "ksenapavlucenko"; // поменяй при необходимости
+    private static final String PASSWORD = ""; // если нужен
+
+    // Добавить тариф
+    public void addTariff(Tariff tariff) throws SQLException {
+        String sql = "INSERT INTO tariffs (type, price_month, price_per_mb) VALUES (?, ?, ?)";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, tariff.getType());
+            stmt.setDouble(2, tariff.getPriceMonth());
+            stmt.setDouble(3, tariff.getPricePerMb());
+            stmt.executeUpdate();
+        }
+    }
+
+    // Получить все тарифы
+    public List<Tariff> getTariffs() throws SQLException {
+        List<Tariff> tariffs = new ArrayList<>();
+        String sql = "SELECT id, type, price_month, price_per_mb FROM tariffs";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                tariffs.add(new Tariff(
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getDouble("price_month"),
+                        rs.getDouble("price_per_mb")
+                ));
+            }
+        }
+        return tariffs;
+    }
+
+    // Обновить тариф
+    public void editTariff(Tariff tariff) throws SQLException {
+        String sql = "UPDATE tariffs SET type=?, price_month=?, price_per_mb=? WHERE id=?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, tariff.getType());
+            stmt.setDouble(2, tariff.getPriceMonth());
+            stmt.setDouble(3, tariff.getPricePerMb());
+            stmt.setInt(4, tariff.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    // Удалить тариф
+    public void deleteTariff(int id) throws SQLException {
+        String sql = "DELETE FROM tariffs WHERE id=?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+
+    // Сортировать тарифы по цене
+    public List<Tariff> getTariffsSortedByPrice() throws SQLException {
+        List<Tariff> tariffs = new ArrayList<>();
+        String sql = "SELECT id, type, price_month, price_per_mb FROM tariffs ORDER BY price_month ASC";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                tariffs.add(new Tariff(
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getDouble("price_month"),
+                        rs.getDouble("price_per_mb")
+                ));
+            }
+        }
+        return tariffs;
+    }
+
+    // Добавить клиента
+    public void addClient(Client client) throws SQLException {
+        String sql = "INSERT INTO clients (name, tariff_id, traffic_mb, cost_strategy) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, client.getName());
+            stmt.setInt(2, client.getTariff().getId());
+            stmt.setDouble(3, client.getTrafficMb());
+            stmt.setString(4, client.getCostStrategy());
+            stmt.executeUpdate();
+        }
+    }
+
+    // Получить всех клиентов
+    public List<Client> getClients() throws SQLException {
+        List<Client> clients = new ArrayList<>();
+        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, t.type, t.price_month, t.price_per_mb " +
+                "FROM clients c JOIN tariffs t ON c.tariff_id = t.id";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Tariff tariff = new Tariff(
+                        rs.getInt("tariff_id"),
+                        rs.getString("type"),
+                        rs.getDouble("price_month"),
+                        rs.getDouble("price_per_mb")
+                );
+                clients.add(new Client(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        tariff,
+                        rs.getDouble("traffic_mb"),
+                        rs.getString("cost_strategy")
+                ));
+            }
+        }
+        return clients;
+    }
+
+    // Редактировать клиента
+    public void editClient(Client client) throws SQLException {
+        String sql = "UPDATE clients SET name=?, tariff_id=?, traffic_mb=?, cost_strategy=? WHERE id=?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, client.getName());
+            stmt.setInt(2, client.getTariff().getId());
+            stmt.setDouble(3, client.getTrafficMb());
+            stmt.setString(4, client.getCostStrategy());
+            stmt.setInt(5, client.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    // Удалить клиента
+    public void deleteClient(int id) throws SQLException {
+        String sql = "DELETE FROM clients WHERE id=?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+
+    // Сортировать клиентов по имени
+    public List<Client> getClientsSortedByName() throws SQLException {
+        List<Client> clients = new ArrayList<>();
+        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, t.type, t.price_month, t.price_per_mb " +
+                "FROM clients c JOIN tariffs t ON c.tariff_id = t.id ORDER BY c.name";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Tariff tariff = new Tariff(
+                        rs.getInt("tariff_id"),
+                        rs.getString("type"),
+                        rs.getDouble("price_month"),
+                        rs.getDouble("price_per_mb")
+                );
+                clients.add(new Client(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        tariff,
+                        rs.getDouble("traffic_mb"),
+                        rs.getString("cost_strategy")
+                ));
+            }
+        }
+        return clients;
+    }
+
+    // Сортировать клиентов по оплате
+    public List<Client> getClientsSortedByCost() throws SQLException {
+        List<Client> clients = new ArrayList<>();
+        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, t.type, t.price_month, t.price_per_mb, " +
+                "(t.price_month + c.traffic_mb * t.price_per_mb) AS total_cost " +
+                "FROM clients c JOIN tariffs t ON c.tariff_id = t.id ORDER BY total_cost DESC";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Tariff tariff = new Tariff(
+                        rs.getInt("tariff_id"),
+                        rs.getString("type"),
+                        rs.getDouble("price_month"),
+                        rs.getDouble("price_per_mb")
+                );
+                clients.add(new Client(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        tariff,
+                        rs.getDouble("traffic_mb"),
+                        rs.getString("cost_strategy")
+                ));
+            }
+        }
+        return clients;
+    }
+
+    // Найти клиента с максимальной оплатой
+    public Client findTopPayer() throws SQLException {
+        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, t.type, t.price_month, t.price_per_mb, " +
+                "(t.price_month + c.traffic_mb * t.price_per_mb) AS total_cost " +
+                "FROM clients c JOIN tariffs t ON c.tariff_id = t.id ORDER BY total_cost DESC LIMIT 1";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                Tariff tariff = new Tariff(
+                        rs.getInt("tariff_id"),
+                        rs.getString("type"),
+                        rs.getDouble("price_month"),
+                        rs.getDouble("price_per_mb")
+                );
+                return new Client(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        tariff,
+                        rs.getDouble("traffic_mb"),
+                        rs.getString("cost_strategy")
+                );
+            }
+        }
+        return null;
+    }
+
+    // Общая стоимость всех клиентов
+    public double getTotalCost() throws SQLException {
+        String sql = "SELECT SUM(t.price_month + c.traffic_mb * t.price_per_mb) FROM clients c JOIN tariffs t ON c.tariff_id = t.id";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getDouble(1);
+            }
+        }
+        return 0.0;
+    }
+}
