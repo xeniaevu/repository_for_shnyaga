@@ -7,7 +7,7 @@ public class TariffDialog extends JDialog {
     private JTextField pricePerMbField;
     private boolean confirmed = false;
 
-    // Для добавления тарифа
+    //для добавления тарифа
     public TariffDialog(Frame owner, String title, Color backgroundColor) {
         super(owner, title, true);
         initComponents(backgroundColor, null);
@@ -15,7 +15,7 @@ public class TariffDialog extends JDialog {
         setLocationRelativeTo(owner);
     }
 
-    // Для редактирования тарифа
+    //для редактирования тарифа
     public TariffDialog(Frame owner, String title, Color backgroundColor, Tariff tariffToEdit) {
         super(owner, title, true);
         initComponents(backgroundColor, tariffToEdit);

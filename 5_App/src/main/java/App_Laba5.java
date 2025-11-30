@@ -7,7 +7,7 @@ public class App_Laba5 {
     private static Provider provider;
 
     public static void main(String[] args) {
-        // Современная палитра
+
         Color bgMain = new Color(32, 43, 61);
         Color panelBg = new Color(56, 68, 94);
         Color buttonBg = new Color(230, 236, 241);
@@ -20,10 +20,10 @@ public class App_Laba5 {
         frame.setLayout(new BorderLayout());
         frame.getContentPane().setBackground(bgMain);
 
-        // --- Provider управляет через БД ---
+        //Provider управляет через БД
         provider = new Provider();
 
-        // Шапка
+        //шапка
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(bgMain);
         JLabel header = new JLabel("Internet Provider System");
@@ -31,7 +31,7 @@ public class App_Laba5 {
         header.setFont(new Font("Arial", Font.BOLD, 28));
         headerPanel.add(header);
 
-        // --- Панель ТАРИФОВ ---
+        //панель ТАРИФов
         JPanel tariffPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         tariffPanel.setBackground(panelBg);
         JButton tariffsBtn = new JButton("Тарифы");
@@ -41,7 +41,7 @@ public class App_Laba5 {
         addStyled(tariffPanel, buttonBg, buttonText,
                 tariffsBtn, editTariffBtn, deleteTariffBtn, sortTariffsBtn);
 
-        // --- Панель клиентов ---
+        //панель клиентов
         JPanel clientPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         clientPanel.setBackground(panelBg);
         JButton clientsBtn = new JButton("Клиенты");
@@ -54,7 +54,7 @@ public class App_Laba5 {
                 clientsBtn, showClientsBtn, editClientBtn,
                 deleteClientBtn, sortClientsByNameBtn, sortClientsByCostBtn);
 
-        // --- Панель отчётов и файлов ---
+        //панель отчётов и файлов
         JPanel reportsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         reportsPanel.setBackground(panelBg);
         JButton reportsBtn = new JButton("Отчеты");
@@ -68,7 +68,7 @@ public class App_Laba5 {
         addStyled(reportsPanel, buttonBg, buttonText,
                 reportsBtn, exportClientsBtn, importClientsBtn);
 
-        // --- Верх ---
+        //верз
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         topPanel.setBackground(bgMain);
@@ -79,9 +79,9 @@ public class App_Laba5 {
         frame.add(headerPanel, BorderLayout.NORTH);
         frame.add(topPanel, BorderLayout.CENTER);
 
-        // ================== ОБРАБОТЧИКИ ==================
+        //обработчики!!!!
 
-        // --------- ТАРИФЫ -------------
+        //ТАРИФЫ
         tariffsBtn.addActionListener(e -> {
             TariffDialog dialog = new TariffDialog(frame, "Добавить тариф", new Color(230, 230, 250));
             dialog.setVisible(true);
@@ -162,7 +162,7 @@ public class App_Laba5 {
             }
         });
 
-        // --------- КЛИЕНТЫ -------------
+        //КЛИЕНТЫ
 
         clientsBtn.addActionListener(e -> {
             Object[] options = {"Зарегистрировать пользователя", "Ввод трафика"};
@@ -367,7 +367,7 @@ public class App_Laba5 {
             }
         });
 
-        // --------- ОТЧЁТЫ -------------
+        //ОТЧЁТЫ
 
         reportsBtn.addActionListener(e -> {
             Object[] options = {"Подсчитать общую стоимость", "Найти клиента с максимальной оплатой"};
@@ -393,7 +393,7 @@ public class App_Laba5 {
             }
         });
 
-        // --------- ЭКСПОРТ КЛИЕНТОВ В ФАЙЛ -------------
+        //ЭКСПОРТ КЛИЕНТОВ В ФАЙЛ
 
         exportClientsBtn.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
@@ -416,7 +416,7 @@ public class App_Laba5 {
             }
         });
 
-        // --------- ИМПОРТ КЛИЕНТОВ ИЗ ФАЙЛА -------------
+        //ИМПОРТ КЛИЕНТОВ ИЗ ФАЙЛА
 
         importClientsBtn.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
@@ -435,7 +435,7 @@ public class App_Laba5 {
             }
         });
 
-        // центрируем окно и показываем
+        //центрируем окно и показываем
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }

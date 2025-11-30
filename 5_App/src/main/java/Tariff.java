@@ -4,7 +4,7 @@ public class Tariff {
     private double priceMonth;    // абонентская плата
     private double pricePerMb;    // цена за 1 Мбайт
 
-    // Конструктор для загрузки тарифа из БД
+    //конструктор для загрузки тарифа из БД
     public Tariff(int id, String type, double priceMonth, double pricePerMb) {
         this.id = id;
         this.type = type;
@@ -12,14 +12,14 @@ public class Tariff {
         this.pricePerMb = pricePerMb;
     }
 
-    // Конструктор для создания нового тарифа (без id)
+    //конструктор для создания нового тарифа (без id)
     public Tariff(String type, double priceMonth, double pricePerMb) {
         this.type = type;
         this.priceMonth = priceMonth;
         this.pricePerMb = pricePerMb;
     }
 
-    // Геттеры и сеттеры
+    //геттеры и сеттеры
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -32,7 +32,7 @@ public class Tariff {
     public double getPricePerMb() { return pricePerMb; }
     public void setPricePerMb(double pricePerMb) { this.pricePerMb = pricePerMb; }
 
-    // Метод для расчёта стоимости по тарифу
+    //метод для расчёта стоимости по тарифу
     public double calculateCost(double mbUsed) {
         return priceMonth + mbUsed * pricePerMb;
     }

@@ -9,7 +9,7 @@ public class Provider {
     private static final String USER = "ksenapavlucenko"; // поменяй при необходимости
     private static final String PASSWORD = ""; // если нужен
 
-    // Добавить тариф
+    //добавить тариф
     public void addTariff(Tariff tariff) throws SQLException {
         String sql = "INSERT INTO tariffs (type, price_month, price_per_mb) VALUES (?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -21,7 +21,7 @@ public class Provider {
         }
     }
 
-    // Получить все тарифы
+    //получить все тарифы
     public List<Tariff> getTariffs() throws SQLException {
         List<Tariff> tariffs = new ArrayList<>();
         String sql = "SELECT id, type, price_month, price_per_mb FROM tariffs";
@@ -40,7 +40,7 @@ public class Provider {
         return tariffs;
     }
 
-    // Обновить тариф
+    //поправить тариф
     public void editTariff(Tariff tariff) throws SQLException {
         String sql = "UPDATE tariffs SET type=?, price_month=?, price_per_mb=? WHERE id=?";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -53,7 +53,7 @@ public class Provider {
         }
     }
 
-    // Удалить тариф
+    //удалить тариф
     public void deleteTariff(int id) throws SQLException {
         String sql = "DELETE FROM tariffs WHERE id=?";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -63,7 +63,7 @@ public class Provider {
         }
     }
 
-    // Сортировать тарифы по цене
+    //сортировать тарифы по цене
     public List<Tariff> getTariffsSortedByPrice() throws SQLException {
         List<Tariff> tariffs = new ArrayList<>();
         String sql = "SELECT id, type, price_month, price_per_mb FROM tariffs ORDER BY price_month ASC";
@@ -82,7 +82,7 @@ public class Provider {
         return tariffs;
     }
 
-    // Добавить клиента
+    //добавить клиента
     public void addClient(Client client) throws SQLException {
         String sql = "INSERT INTO clients (name, tariff_id, traffic_mb, cost_strategy) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -102,7 +102,7 @@ public class Provider {
         }
     }
 
-    // Получить всех клиентов
+    //получить всех клиентов
     public List<Client> getClients() throws SQLException {
         List<Client> clients = new ArrayList<>();
         String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, " +
@@ -130,7 +130,7 @@ public class Provider {
         return clients;
     }
 
-    // Редактировать клиента
+    //редактировать клиента
     public void editClient(Client client) throws SQLException {
         String sql = "UPDATE clients SET name=?, tariff_id=?, traffic_mb=?, cost_strategy=? WHERE id=?";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -144,7 +144,7 @@ public class Provider {
         }
     }
 
-    // Удалить клиента
+    //удалить клиента
     public void deleteClient(int id) throws SQLException {
         String sql = "DELETE FROM clients WHERE id=?";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -154,7 +154,7 @@ public class Provider {
         }
     }
 
-    // Сортировать клиентов по имени
+    //сортировать клиентов по имени
     public List<Client> getClientsSortedByName() throws SQLException {
         List<Client> clients = new ArrayList<>();
         String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, " +
@@ -182,7 +182,7 @@ public class Provider {
         return clients;
     }
 
-    // Сортировать клиентов по оплате (по базовой формуле, без учёта скидки)
+    //сортировать клиентов по оплате (по базовой формуле, без учёта скидки)
     public List<Client> getClientsSortedByCost() throws SQLException {
         List<Client> clients = new ArrayList<>();
         String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, " +
@@ -211,7 +211,7 @@ public class Provider {
         return clients;
     }
 
-    // Найти клиента с максимальной оплатой (без учёта скидки)
+    //найти клиента с максимальной оплатой (без учёта скидки)
     public Client findTopPayer() throws SQLException {
         String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, " +
                 "t.type, t.price_month, t.price_per_mb, " +
@@ -239,7 +239,7 @@ public class Provider {
         return null;
     }
 
-    // Общая стоимость всех клиентов (по базовой формуле)
+    //общая стоимость всех клиентов (по базовой формуле)
     public double getTotalCost() throws SQLException {
         String sql = "SELECT SUM(t.price_month + c.traffic_mb * t.price_per_mb) " +
                 "FROM clients c JOIN tariffs t ON c.tariff_id = t.id";
@@ -253,9 +253,8 @@ public class Provider {
         return 0.0;
     }
 
-    // ================== ЭКСПОРТ / ИМПОРТ КЛИЕНТОВ В CSV ==================
+    // ЭКСПОРТ / ИМПОРТ КЛИЕНТОВ В из CSV
 
-    // Экспорт всех клиентов в CSV-файл
     // Формат: id;name;tariff_id;traffic_mb;cost_strategy
     public void exportClientsToFile(File file) throws Exception {
         List<Client> clients = getClients(); // берём актуальные данные из БД
@@ -279,8 +278,8 @@ public class Provider {
         }
     }
 
-    // Импорт клиентов из CSV-файла (того же формата)
-    // Тарифы НЕ создаём, используем существующие по tariff_id
+    //импорт клиентов из CSV-файла
+    //тарифы НЕ создаём, используем существующие по tariff_id
     public void importClientsFromFile(File file) throws Exception {
         // заранее поднимем все тарифы в память
         List<Tariff> tariffs = getTariffs();
@@ -298,7 +297,7 @@ public class Provider {
                 String[] parts = line.split(";", -1);
                 if (parts.length < 5) continue;
 
-                // id из файла можно проигнорировать, т.к. БД сама выдаст новый id
+
                 // String idStr = parts[0];
                 String name = unescape(parts[1]);
                 int tariffId = Integer.parseInt(parts[2]);
@@ -318,7 +317,7 @@ public class Provider {
         }
     }
 
-    // Поиск тарифа в списке по id
+    //поиск тарифа в списке по id
     private Tariff findTariffById(List<Tariff> tariffs, int id) {
         for (Tariff t : tariffs) {
             if (t.getId() == id) {
@@ -328,7 +327,7 @@ public class Provider {
         return null;
     }
 
-    // Экранирование ; и перевода строки в имени
+    //экранирование ; и перевода строки в имени
     private String escape(String value) {
         if (value == null) return "";
         // заменяем ; и перевод строки, чтобы не ломать CSV
@@ -337,7 +336,7 @@ public class Provider {
         return v;
     }
 
-    // Обратное преобразование (сейчас у нас только замена ; -> , поэтому можно вернуть как есть)
+    //обратное преобразование (сейчас у нас только замена ; -> , поэтому можно вернуть как есть)
     private String unescape(String value) {
         if (value == null) return "";
         return value;

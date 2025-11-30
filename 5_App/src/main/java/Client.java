@@ -22,7 +22,7 @@ public class Client {
         this.costStrategy = costStrategy;
     }
 
-    // Геттеры и сеттеры
+    //геттеры и сеттеры
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -38,7 +38,7 @@ public class Client {
     public String getCostStrategy() { return costStrategy; }
     public void setCostStrategy(String costStrategy) { this.costStrategy = costStrategy; }
 
-    // Метод для расчёта стоимости для UI (если нужно)
+    //метод для расчёта стоимост
     public double getCost() {
         if ("DISCOUNT_20".equals(costStrategy)) {
             return 0.8 * (tariff.getPriceMonth() + trafficMb * tariff.getPricePerMb());
