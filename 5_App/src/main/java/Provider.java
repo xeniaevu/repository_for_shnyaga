@@ -1,6 +1,7 @@
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.*;
 
 public class Provider {
 
@@ -74,7 +75,7 @@ public class Provider {
                         rs.getInt("id"),
                         rs.getString("type"),
                         rs.getDouble("price_month"),
-                        rs.getDouble("price_per_mb")
+                        rs.getDouble("price_perMb")  // если у тебя колонка именно price_per_mb, поправь на неё
                 ));
             }
         }
@@ -85,19 +86,27 @@ public class Provider {
     public void addClient(Client client) throws SQLException {
         String sql = "INSERT INTO clients (name, tariff_id, traffic_mb, cost_strategy) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, client.getName());
             stmt.setInt(2, client.getTariff().getId());
             stmt.setDouble(3, client.getTrafficMb());
             stmt.setString(4, client.getCostStrategy());
             stmt.executeUpdate();
+
+            // При желании можем считать сгенерированный id и записать в объект
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    client.setId(keys.getInt(1));
+                }
+            }
         }
     }
 
     // Получить всех клиентов
     public List<Client> getClients() throws SQLException {
         List<Client> clients = new ArrayList<>();
-        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, t.type, t.price_month, t.price_per_mb " +
+        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, " +
+                "t.type, t.price_month, t.price_per_mb " +
                 "FROM clients c JOIN tariffs t ON c.tariff_id = t.id";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              Statement stmt = conn.createStatement();
@@ -148,7 +157,8 @@ public class Provider {
     // Сортировать клиентов по имени
     public List<Client> getClientsSortedByName() throws SQLException {
         List<Client> clients = new ArrayList<>();
-        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, t.type, t.price_month, t.price_per_mb " +
+        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, " +
+                "t.type, t.price_month, t.price_per_mb " +
                 "FROM clients c JOIN tariffs t ON c.tariff_id = t.id ORDER BY c.name";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              Statement stmt = conn.createStatement();
@@ -172,10 +182,11 @@ public class Provider {
         return clients;
     }
 
-    // Сортировать клиентов по оплате
+    // Сортировать клиентов по оплате (по базовой формуле, без учёта скидки)
     public List<Client> getClientsSortedByCost() throws SQLException {
         List<Client> clients = new ArrayList<>();
-        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, t.type, t.price_month, t.price_per_mb, " +
+        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, " +
+                "t.type, t.price_month, t.price_per_mb, " +
                 "(t.price_month + c.traffic_mb * t.price_per_mb) AS total_cost " +
                 "FROM clients c JOIN tariffs t ON c.tariff_id = t.id ORDER BY total_cost DESC";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -200,9 +211,10 @@ public class Provider {
         return clients;
     }
 
-    // Найти клиента с максимальной оплатой
+    // Найти клиента с максимальной оплатой (без учёта скидки)
     public Client findTopPayer() throws SQLException {
-        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, t.type, t.price_month, t.price_per_mb, " +
+        String sql = "SELECT c.id, c.name, c.tariff_id, c.traffic_mb, c.cost_strategy, " +
+                "t.type, t.price_month, t.price_per_mb, " +
                 "(t.price_month + c.traffic_mb * t.price_per_mb) AS total_cost " +
                 "FROM clients c JOIN tariffs t ON c.tariff_id = t.id ORDER BY total_cost DESC LIMIT 1";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -227,9 +239,10 @@ public class Provider {
         return null;
     }
 
-    // Общая стоимость всех клиентов
+    // Общая стоимость всех клиентов (по базовой формуле)
     public double getTotalCost() throws SQLException {
-        String sql = "SELECT SUM(t.price_month + c.traffic_mb * t.price_per_mb) FROM clients c JOIN tariffs t ON c.tariff_id = t.id";
+        String sql = "SELECT SUM(t.price_month + c.traffic_mb * t.price_per_mb) " +
+                "FROM clients c JOIN tariffs t ON c.tariff_id = t.id";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -238,5 +251,95 @@ public class Provider {
             }
         }
         return 0.0;
+    }
+
+    // ================== ЭКСПОРТ / ИМПОРТ КЛИЕНТОВ В CSV ==================
+
+    // Экспорт всех клиентов в CSV-файл
+    // Формат: id;name;tariff_id;traffic_mb;cost_strategy
+    public void exportClientsToFile(File file) throws Exception {
+        List<Client> clients = getClients(); // берём актуальные данные из БД
+
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(file), "UTF-8"))) {
+
+            // заголовок
+            writer.write("id;name;tariff_id;traffic_mb;cost_strategy");
+            writer.newLine();
+
+            for (Client c : clients) {
+                String line = c.getId() + ";" +
+                        escape(c.getName()) + ";" +
+                        c.getTariff().getId() + ";" +
+                        c.getTrafficMb() + ";" +
+                        c.getCostStrategy();
+                writer.write(line);
+                writer.newLine();
+            }
+        }
+    }
+
+    // Импорт клиентов из CSV-файла (того же формата)
+    // Тарифы НЕ создаём, используем существующие по tariff_id
+    public void importClientsFromFile(File file) throws Exception {
+        // заранее поднимем все тарифы в память
+        List<Tariff> tariffs = getTariffs();
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
+
+            String line = reader.readLine(); // пропускаем заголовок
+            if (line == null) {
+                return;
+            }
+
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(";", -1);
+                if (parts.length < 5) continue;
+
+                // id из файла можно проигнорировать, т.к. БД сама выдаст новый id
+                // String idStr = parts[0];
+                String name = unescape(parts[1]);
+                int tariffId = Integer.parseInt(parts[2]);
+                double trafficMb = Double.parseDouble(parts[3]);
+                String costStrategy = parts[4];
+
+                Tariff tariff = findTariffById(tariffs, tariffId);
+                if (tariff == null) {
+                    // если тарифа с таким id нет, можно пропустить запись или бросить исключение
+                    // здесь просто пропустим
+                    continue;
+                }
+
+                Client client = new Client(name, tariff, trafficMb, costStrategy);
+                addClient(client);
+            }
+        }
+    }
+
+    // Поиск тарифа в списке по id
+    private Tariff findTariffById(List<Tariff> tariffs, int id) {
+        for (Tariff t : tariffs) {
+            if (t.getId() == id) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    // Экранирование ; и перевода строки в имени
+    private String escape(String value) {
+        if (value == null) return "";
+        // заменяем ; и перевод строки, чтобы не ломать CSV
+        String v = value.replace(";", ",");
+        v = v.replace("\r", " ").replace("\n", " ");
+        return v;
+    }
+
+    // Обратное преобразование (сейчас у нас только замена ; -> , поэтому можно вернуть как есть)
+    private String unescape(String value) {
+        if (value == null) return "";
+        return value;
     }
 }

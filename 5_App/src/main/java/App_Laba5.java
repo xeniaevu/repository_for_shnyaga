@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.util.List;
 
 public class App_Laba5 {
     private static Provider provider;
@@ -36,7 +38,8 @@ public class App_Laba5 {
         JButton editTariffBtn = new JButton("Редактировать тариф");
         JButton deleteTariffBtn = new JButton("Удалить тариф");
         JButton sortTariffsBtn = new JButton("Сортировать тарифы по цене");
-        addStyled(tariffPanel, buttonBg, buttonText, tariffsBtn, editTariffBtn, deleteTariffBtn, sortTariffsBtn);
+        addStyled(tariffPanel, buttonBg, buttonText,
+                tariffsBtn, editTariffBtn, deleteTariffBtn, sortTariffsBtn);
 
         // --- Панель клиентов ---
         JPanel clientPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -47,15 +50,23 @@ public class App_Laba5 {
         JButton deleteClientBtn = new JButton("Удалить клиента");
         JButton sortClientsByNameBtn = new JButton("Сортировать клиентов по имени");
         JButton sortClientsByCostBtn = new JButton("Сортировать клиентов по оплате");
-        addStyled(clientPanel, buttonBg, buttonText, clientsBtn, showClientsBtn, editClientBtn, deleteClientBtn, sortClientsByNameBtn, sortClientsByCostBtn);
+        addStyled(clientPanel, buttonBg, buttonText,
+                clientsBtn, showClientsBtn, editClientBtn,
+                deleteClientBtn, sortClientsByNameBtn, sortClientsByCostBtn);
 
-        // --- Панель отчётов ---
+        // --- Панель отчётов и файлов ---
         JPanel reportsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         reportsPanel.setBackground(panelBg);
         JButton reportsBtn = new JButton("Отчеты");
-        JButton saveBtn = new JButton("Сохранить данные");
-        JButton rollbackBtn = new JButton("Откатить до последнего коммита");
-        addStyled(reportsPanel, buttonBg, buttonText, reportsBtn, saveBtn, rollbackBtn);
+
+        // новая кнопка: экспорт клиентов в файл
+        JButton exportClientsBtn = new JButton("Сохранить клиентов в файл");
+
+        // новая кнопка: импорт клиентов из файла
+        JButton importClientsBtn = new JButton("Загрузить клиентов из файла");
+
+        addStyled(reportsPanel, buttonBg, buttonText,
+                reportsBtn, exportClientsBtn, importClientsBtn);
 
         // --- Верх ---
         JPanel topPanel = new JPanel();
@@ -68,7 +79,9 @@ public class App_Laba5 {
         frame.add(headerPanel, BorderLayout.NORTH);
         frame.add(topPanel, BorderLayout.CENTER);
 
-        // --------- ОБРАБОТЧИКИ -------------
+        // ================== ОБРАБОТЧИКИ ==================
+
+        // --------- ТАРИФЫ -------------
         tariffsBtn.addActionListener(e -> {
             TariffDialog dialog = new TariffDialog(frame, "Добавить тариф", new Color(230, 230, 250));
             dialog.setVisible(true);
@@ -93,7 +106,7 @@ public class App_Laba5 {
 
         editTariffBtn.addActionListener(e -> {
             try {
-                java.util.List<Tariff> tariffs = provider.getTariffs();
+                List<Tariff> tariffs = provider.getTariffs();
                 if (tariffs.isEmpty()) {
                     JOptionPane.showMessageDialog(frame, "Сначала добавьте тарифы.");
                     return;
@@ -102,7 +115,8 @@ public class App_Laba5 {
                         "Выберите тариф для редактирования:", "Редактировать тариф",
                         JOptionPane.PLAIN_MESSAGE, null, tariffs.toArray(), null);
                 if (selectedTariff != null) {
-                    TariffDialog dialogEdit = new TariffDialog(frame, "Редактировать тариф", new Color(255, 255, 200), selectedTariff);
+                    TariffDialog dialogEdit = new TariffDialog(frame, "Редактировать тариф",
+                            new Color(255, 255, 200), selectedTariff);
                     dialogEdit.setVisible(true);
                     if (dialogEdit.isConfirmed()) {
                         String type = dialogEdit.getSelectedTariffType().name();
@@ -122,7 +136,7 @@ public class App_Laba5 {
 
         deleteTariffBtn.addActionListener(e -> {
             try {
-                java.util.List<Tariff> tariffs = provider.getTariffs();
+                List<Tariff> tariffs = provider.getTariffs();
                 if (tariffs.isEmpty()) {
                     JOptionPane.showMessageDialog(frame, "Нет тарифов для удаления.");
                     return;
@@ -141,12 +155,14 @@ public class App_Laba5 {
 
         sortTariffsBtn.addActionListener(e -> {
             try {
-                java.util.List<Tariff> tariffs = provider.getTariffsSortedByPrice();
+                List<Tariff> tariffs = provider.getTariffsSortedByPrice();
                 JOptionPane.showMessageDialog(frame, "Тарифы отсортированы:\n" + tariffs);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Ошибка: " + ex.getMessage());
             }
         });
+
+        // --------- КЛИЕНТЫ -------------
 
         clientsBtn.addActionListener(e -> {
             Object[] options = {"Зарегистрировать пользователя", "Ввод трафика"};
@@ -154,7 +170,7 @@ public class App_Laba5 {
                     JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
             if (res == 0) {
                 try {
-                    java.util.List<Tariff> tariffs = provider.getTariffs();
+                    List<Tariff> tariffs = provider.getTariffs();
                     if (tariffs.isEmpty()) {
                         JOptionPane.showMessageDialog(frame, "Сначала добавьте тарифы.");
                         return;
@@ -163,32 +179,40 @@ public class App_Laba5 {
                     JTextField nameField = new JTextField();
                     JComboBox<Tariff> tariffComboBox = new JComboBox<>();
                     for (Tariff t : tariffs) tariffComboBox.addItem(t);
-                    JComboBox<String> strategyCombo = new JComboBox<>(new String[]{"Обычный клиент", "Клиент со скидкой 20%"});
+                    JComboBox<String> strategyCombo = new JComboBox<>(new String[]{
+                            "Обычный клиент", "Клиент со скидкой 20%"
+                    });
+
                     panel.add(new JLabel("Имя пользователя:"));
                     panel.add(nameField);
                     panel.add(new JLabel("Выберите тариф:"));
                     panel.add(tariffComboBox);
                     panel.add(new JLabel("Тип клиента:"));
                     panel.add(strategyCombo);
-                    int result = JOptionPane.showConfirmDialog(frame, panel, "Регистрация пользователя",
-                            JOptionPane.OK_CANCEL_OPTION);
+
+                    int result = JOptionPane.showConfirmDialog(
+                            frame, panel, "Регистрация пользователя", JOptionPane.OK_CANCEL_OPTION);
+
                     if (result == JOptionPane.OK_OPTION) {
                         String name = nameField.getText().trim();
                         Tariff selectedTariff = (Tariff) tariffComboBox.getSelectedItem();
                         String strategy = (String) strategyCombo.getSelectedItem();
                         if (!name.isEmpty() && selectedTariff != null && strategy != null) {
-                            String costStrategy = strategy.equals("Клиент со скидкой 20%") ? "DISCOUNT_20" : "NORMAL";
+                            String costStrategy = strategy.equals("Клиент со скидкой 20%")
+                                    ? "DISCOUNT_20" : "NORMAL";
                             Client newClient = new Client(name, selectedTariff, 0, costStrategy);
                             provider.addClient(newClient);
                             JOptionPane.showMessageDialog(frame, "Пользователь зарегистрирован.");
-                        } else JOptionPane.showMessageDialog(frame, "Введите все данные.");
+                        } else {
+                            JOptionPane.showMessageDialog(frame, "Введите все данные.");
+                        }
                     }
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(frame, "Ошибка: " + ex.getMessage());
                 }
             } else if (res == 1) {
                 try {
-                    java.util.List<Client> clients = provider.getClients();
+                    List<Client> clients = provider.getClients();
                     if (clients.isEmpty()) {
                         JOptionPane.showMessageDialog(frame, "Сначала зарегистрируйте пользователей.");
                         return;
@@ -197,12 +221,17 @@ public class App_Laba5 {
                     JComboBox<Client> userComboBox = new JComboBox<>();
                     for (Client u : clients) userComboBox.addItem(u);
                     JTextField trafficField = new JTextField();
+
                     panel.add(new JLabel("Выберите пользователя:"));
                     panel.add(userComboBox);
                     panel.add(new JLabel("Введите потребленный трафик (Мбайт):"));
                     panel.add(trafficField);
-                    int result = JOptionPane.showConfirmDialog(frame, panel, "Ввод трафика сверх заслуженного (с доплатой)",
+
+                    int result = JOptionPane.showConfirmDialog(
+                            frame, panel,
+                            "Ввод трафика сверх заслуженного (с доплатой)",
                             JOptionPane.OK_CANCEL_OPTION);
+
                     if (result == JOptionPane.OK_OPTION) {
                         Client selectedClient = (Client) userComboBox.getSelectedItem();
                         double traffic = Double.parseDouble(trafficField.getText());
@@ -223,7 +252,7 @@ public class App_Laba5 {
 
         showClientsBtn.addActionListener(e -> {
             try {
-                java.util.List<Client> clients = provider.getClients();
+                List<Client> clients = provider.getClients();
                 if (clients.isEmpty()) {
                     JOptionPane.showMessageDialog(frame, "Нет клиентов для отображения.");
                     return;
@@ -236,7 +265,8 @@ public class App_Laba5 {
                 area.setEditable(false);
                 JScrollPane scrollPane = new JScrollPane(area);
                 scrollPane.setPreferredSize(new Dimension(600, 200));
-                JOptionPane.showMessageDialog(frame, scrollPane, "Список клиентов", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(frame, scrollPane,
+                        "Список клиентов", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Ошибка: " + ex.getMessage());
             }
@@ -244,8 +274,8 @@ public class App_Laba5 {
 
         editClientBtn.addActionListener(e -> {
             try {
-                java.util.List<Client> clients = provider.getClients();
-                java.util.List<Tariff> tariffs = provider.getTariffs();
+                List<Client> clients = provider.getClients();
+                List<Tariff> tariffs = provider.getTariffs();
                 if (clients.isEmpty()) {
                     JOptionPane.showMessageDialog(frame, "Нет клиентов для редактирования.");
                     return;
@@ -259,8 +289,13 @@ public class App_Laba5 {
                     JComboBox<Tariff> tariffComboBox = new JComboBox<>();
                     for (Tariff t : tariffs) tariffComboBox.addItem(t);
                     tariffComboBox.setSelectedItem(selectedClient.getTariff());
-                    JComboBox<String> strategyCombo = new JComboBox<>(new String[]{"Обычный клиент", "Клиент со скидкой 20%"});
-                    strategyCombo.setSelectedItem(selectedClient.getCostStrategy().equals("DISCOUNT_20") ? "Клиент со скидкой 20%" : "Обычный клиент");
+                    JComboBox<String> strategyCombo = new JComboBox<>(new String[]{
+                            "Обычный клиент", "Клиент со скидкой 20%"
+                    });
+                    strategyCombo.setSelectedItem(
+                            selectedClient.getCostStrategy().equals("DISCOUNT_20")
+                                    ? "Клиент со скидкой 20%" : "Обычный клиент"
+                    );
 
                     panel.add(new JLabel("Имя пользователя:"));
                     panel.add(nameField);
@@ -268,7 +303,10 @@ public class App_Laba5 {
                     panel.add(tariffComboBox);
                     panel.add(new JLabel("Тип клиента:"));
                     panel.add(strategyCombo);
-                    int result = JOptionPane.showConfirmDialog(frame, panel, "Редактировать клиента", JOptionPane.OK_CANCEL_OPTION);
+
+                    int result = JOptionPane.showConfirmDialog(
+                            frame, panel, "Редактировать клиента", JOptionPane.OK_CANCEL_OPTION);
+
                     if (result == JOptionPane.OK_OPTION) {
                         String name = nameField.getText().trim();
                         Tariff newTariff = (Tariff) tariffComboBox.getSelectedItem();
@@ -276,7 +314,10 @@ public class App_Laba5 {
                         if (!name.isEmpty() && newTariff != null && strategy != null) {
                             selectedClient.setName(name);
                             selectedClient.setTariff(newTariff);
-                            selectedClient.setCostStrategy(strategy.equals("Клиент со скидкой 20%") ? "DISCOUNT_20" : "NORMAL");
+                            selectedClient.setCostStrategy(
+                                    strategy.equals("Клиент со скидкой 20%")
+                                            ? "DISCOUNT_20" : "NORMAL"
+                            );
                             provider.editClient(selectedClient);
                             JOptionPane.showMessageDialog(frame, "Данные клиента обновлены.");
                         } else {
@@ -291,7 +332,7 @@ public class App_Laba5 {
 
         deleteClientBtn.addActionListener(e -> {
             try {
-                java.util.List<Client> clients = provider.getClients();
+                List<Client> clients = provider.getClients();
                 if (clients.isEmpty()) {
                     JOptionPane.showMessageDialog(frame, "Нет клиентов для удаления.");
                     return;
@@ -310,7 +351,7 @@ public class App_Laba5 {
 
         sortClientsByNameBtn.addActionListener(e -> {
             try {
-                java.util.List<Client> clients = provider.getClientsSortedByName();
+                List<Client> clients = provider.getClientsSortedByName();
                 JOptionPane.showMessageDialog(frame, "Клиенты отсортированы по имени:\n" + clients);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Ошибка: " + ex.getMessage());
@@ -319,12 +360,14 @@ public class App_Laba5 {
 
         sortClientsByCostBtn.addActionListener(e -> {
             try {
-                java.util.List<Client> clients = provider.getClientsSortedByCost();
+                List<Client> clients = provider.getClientsSortedByCost();
                 JOptionPane.showMessageDialog(frame, "Клиенты отсортированы по оплате:\n" + clients);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Ошибка: " + ex.getMessage());
             }
         });
+
+        // --------- ОТЧЁТЫ -------------
 
         reportsBtn.addActionListener(e -> {
             Object[] options = {"Подсчитать общую стоимость", "Найти клиента с максимальной оплатой"};
@@ -350,10 +393,49 @@ public class App_Laba5 {
             }
         });
 
-        // --- Эти кнопки реализуйте, если нужна физическая сериализация, на БД их можно убрать ---
-        saveBtn.setVisible(false);     // отключено для БД
-        rollbackBtn.setVisible(false);
+        // --------- ЭКСПОРТ КЛИЕНТОВ В ФАЙЛ -------------
 
+        exportClientsBtn.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Сохранить клиентов в CSV");
+            int result = chooser.showSaveDialog(frame);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                // добавим расширение .csv, если его нет
+                if (!file.getName().toLowerCase().endsWith(".csv")) {
+                    file = new File(file.getParentFile(), file.getName() + ".csv");
+                }
+                try {
+                    provider.exportClientsToFile(file);
+                    JOptionPane.showMessageDialog(frame,
+                            "Клиенты успешно сохранены в файл:\n" + file.getAbsolutePath());
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Ошибка при сохранении в файл: " + ex.getMessage());
+                }
+            }
+        });
+
+        // --------- ИМПОРТ КЛИЕНТОВ ИЗ ФАЙЛА -------------
+
+        importClientsBtn.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Загрузить клиентов из CSV");
+            int result = chooser.showOpenDialog(frame);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                try {
+                    provider.importClientsFromFile(file);
+                    JOptionPane.showMessageDialog(frame,
+                            "Клиенты успешно загружены из файла:\n" + file.getAbsolutePath());
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Ошибка при загрузке из файла: " + ex.getMessage());
+                }
+            }
+        });
+
+        // центрируем окно и показываем
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
