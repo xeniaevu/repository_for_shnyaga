@@ -1,0 +1,35 @@
+🖥️ Internet Provider System
+
+Система управления интернет-провайдером — десктопное Java Swing приложение для управления клиентами, тарифами, трафиком и аналитикой. Полный CRUD, сортировка, отчёты, экспорт/импорт CSV, паттерн Strategy для расчёта стоимости.
+
+📋 Описание проекта
+
+Приложение моделирует работу интернет-провайдера:
+
+    Тарифы: LOW/MEDIUM/HIGH с абонплатой и ценой за МБ
+
+    Клиенты: привязка к тарифу, учёт трафика, стратегии ценообразования (NORMAL/DISCOUNT_20%)
+
+    Аналитика: топ-плательщик, общая стоимость, сортировки
+
+    Файлы: экспорт/импорт клиентов в CSV формате
+
+📁 Файлы проекта
+
+├── App_Laba5.java          # Главное Swing приложение
+├── Provider.java           # DAO: CRUD + CSV + аналитика
+├── Client.java             # Клиент + getCost() со Strategy
+├── Tariff.java             # Тариф + calculateCost()
+├── TariffDialog.java       # Диалог тарифов
+├── CostStrategy.java       # Интерфейс Strategy
+├── NormalCostStrategy.java # Обычный расчёт
+├── DiscountCostStrategy.java # Скидка 20%
+├── TariffType.java         # Enum: LOW/MEDIUM/HIGH
+├── README.md              # Этот файл
+└── uml-diagram.puml       # UML диаграмма
+
+👨‍💻 Автор
+
+Ксения Павлюченко
+СПбПУ · Информационные системы и технологии
+📧 ksenapavlucenko@edu.spbstu.ru
