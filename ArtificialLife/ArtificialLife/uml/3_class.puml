@@ -1,0 +1,211 @@
+@startuml classes
+title Диаграмма классов — «Искусственная жизнь»
+skinparam classAttributeIconSize 0
+hide empty members
+
+package lifesim.model {
+  abstract class Agent {
+    - x : int
+    - y : int
+    - energy : int
+    - alive : boolean
+    - age : int
+    # Agent(energy : int)
+    + getX() : int
+    + getY() : int
+    + getPosition() : Position
+    + getEnergy() : int
+    + isAlive() : boolean
+    ~ setPosition(x : int, y : int)
+    # addEnergy(delta : int)
+    + live(sim : Simulation) {final}
+    # {abstract} act(sim : Simulation)
+    # metabolize(config : SimulationConfig)
+    + die(sim : Simulation)
+    # reproduce(sim : Simulation)
+    # {abstract} getEnergyChangePerStep(c) : int
+    # {abstract} getReproductionThreshold(c) : int
+    # {abstract} getChildEnergy(c) : int
+    # {abstract} createChild(energy : int) : Agent
+    + {abstract} getSymbol() : char
+    + {abstract} getSpeciesName() : String
+  }
+
+  abstract class Animal {
+    + {static} VISION_RADIUS : int = 2
+    # look(sim) : List<Agent>
+    # findAdjacent(sim, type) : T
+    # nearest(list, random) : T
+    # moveTo(sim, p : Position)
+    # eat(sim, food : Agent, gain : int)
+    # stepTowards(sim, target : Position) : boolean
+    # wander(sim)
+  }
+
+  class Plant {
+    # act(sim)
+    # metabolize(config)
+    + getSymbol() : char = 'P'
+  }
+
+  class Herbivore {
+    # act(sim)
+    - flee(sim, predators : List<Predator>)
+    - {static} score(p, predators) : int[]
+    + getSymbol() : char = 'T'
+  }
+
+  class Predator {
+    # act(sim)
+    + isHungry(config) : boolean
+    + getSymbol() : char = 'X'
+  }
+
+  class Environment {
+    - width : int
+    - height : int
+    - cells : Agent[][]
+    + getAgent(x, y) : Agent
+    + setAgent(x, y, agent : Agent)
+    + moveAgent(agent, x, y)
+    + getNeighbors(x, y, radius) : List<Position>
+    + getOrthogonalNeighbors(x, y) : List<Position>
+    + getEmptyOrthogonalNeighbors(x, y) : List<Position>
+    + isEmpty(x, y) : boolean
+    + isInside(x, y) : boolean
+  }
+
+  class Simulation {
+    - agents : List<Agent>
+    - newborns : List<Agent>
+    - history : Deque<PopulationStats>
+    - step : long
+    - random : Random
+    + step()
+    ~ spawn(child : Agent, x, y)
+    + isAnySpeciesExtinct() : boolean
+    + getStats() : PopulationStats
+    + getHistory() : List<PopulationStats>
+    + getEnvironment() : Environment
+    + getConfig() : SimulationConfig
+  }
+
+  class SimulationConfig {
+    - width, height : int
+    - plantGrowth, plantReproductionThreshold ... : int
+    - herbivoreMetabolism, herbivoreFoodGain ... : int
+    - predatorMetabolism, predatorMeatGain ... : int
+    - seedChance : double
+    + copy() : SimulationConfig
+    + {static} consoleDefaults() : SimulationConfig
+  }
+
+  class PopulationStats {
+    - step : long
+    - plants : int
+    - herbivores : int
+    - predators : int
+  }
+
+  class Position {
+    - x : int
+    - y : int
+    + manhattan(other : Position) : int
+  }
+
+  enum Direction {
+    UP
+    DOWN
+    LEFT
+    RIGHT
+    - dx : int
+    - dy : int
+  }
+}
+
+package lifesim.controller {
+  class SimulationController {
+    - timer : javax.swing.Timer
+    - simulation : Simulation
+    - config : SimulationConfig
+    + start()
+    + pause()
+    + step()
+    + reset()
+    + applyConfig(c : SimulationConfig)
+    + setStepsPerSecond(n : int)
+    + addUpdateListener(l : Runnable)
+  }
+}
+
+package lifesim.view {
+  class MainFrame
+  class GridPanel {
+    # paintComponent(g : Graphics)
+    + getHoveredCell() : Position
+  }
+  class MainPanel {
+    - refresh()
+    - toggleRun()
+    + setTitleBarInset(inset : int)
+  }
+  class FlatButton {
+    # paintComponent(g : Graphics)
+  }
+  class SpeedSlider {
+    # paintComponent(g : Graphics)
+  }
+  class Theme <<utility>> {
+    + installLookAndFeel()
+    + appIcon(size : int) : BufferedImage
+  }
+  class SettingsDialog {
+    + showDialog() : SimulationConfig
+  }
+  class ConsoleView {
+    + render(sim : Simulation)
+  }
+}
+
+package lifesim.app {
+  class GuiMain {
+    + {static} main(args : String[])
+  }
+  class ConsoleMain {
+    + {static} main(args : String[])
+  }
+}
+
+Agent <|-- Plant
+Agent <|-- Animal
+Animal <|-- Herbivore
+Animal <|-- Predator
+
+Simulation *-- "1" Environment
+Simulation *-- "0..*" Agent : agents
+Simulation *-- "1" SimulationConfig
+Simulation *-- "0..600" PopulationStats : history
+Environment o-- "0..*" Agent : cells
+Environment ..> Position
+Environment ..> Direction
+Agent ..> Simulation : live(sim)
+Herbivore ..> Predator : убегает
+Herbivore ..> Plant : ест
+Predator ..> Herbivore : ест
+
+SimulationController --> "1" Simulation
+MainFrame --> SimulationController
+MainFrame *-- MainPanel
+MainFrame ..> SettingsDialog
+MainPanel --> SimulationController
+MainPanel *-- GridPanel
+MainPanel *-- "4" FlatButton
+MainPanel *-- SpeedSlider
+MainPanel ..> Theme
+GridPanel --> Simulation
+ConsoleView ..> Simulation
+GuiMain ..> MainFrame
+GuiMain ..> SimulationController
+ConsoleMain ..> ConsoleView
+ConsoleMain ..> Simulation
+@enduml
