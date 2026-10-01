@@ -1,0 +1,45 @@
+@startuml components
+title Диаграмма компонентов — «Искусственная жизнь»
+skinparam componentStyle uml2
+
+package "ArtificialLife.jar" {
+  package "lifesim.app" {
+    [GuiMain] as GuiMain
+    [ConsoleMain] as ConsoleMain
+    [BalanceTest] as Balance
+  }
+  package "lifesim.controller" {
+    [SimulationController] as Ctrl
+  }
+  package "lifesim.view" {
+    [MainFrame\nMainPanel\nGridPanel\nSettingsDialog\nTheme, FlatButton, SpeedSlider] as GuiView
+    [ConsoleView] as ConView
+  }
+  package "lifesim.model" {
+    [Simulation\nEnvironment\nSimulationConfig] as Core
+    [Agent / Animal\nPlant / Herbivore / Predator] as Agents
+    interface "Simulation API\n(step, getStats, getEnvironment)" as SimAPI
+  }
+}
+
+package "JDK" {
+  [Swing / AWT\n(java.desktop)] as Swing
+  [java.util\n(Random, Collections)] as Util
+}
+
+Core - SimAPI
+Core --> Agents : создаёт и вызывает live()
+Agents --> Core : запросы к среде
+Ctrl --> SimAPI
+GuiView --> Ctrl : команды Старт/Пауза/Шаг
+GuiView --> SimAPI : чтение состояния для отрисовки
+ConView --> SimAPI
+GuiMain --> GuiView
+GuiMain --> Ctrl
+ConsoleMain --> ConView
+ConsoleMain --> SimAPI
+Balance --> SimAPI
+GuiView --> Swing
+Ctrl --> Swing : javax.swing.Timer
+Core --> Util
+@enduml

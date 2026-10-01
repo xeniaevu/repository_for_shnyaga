@@ -1,0 +1,11 @@
+@startuml activity_plant
+title Диаграмма деятельности — ход растения
+start
+:Фотосинтез: E = min(E + n, E_max);
+if (E > P_threshold и есть свободная\nсоседняя клетка?) then (да)
+  :Вегетативное размножение:\nновое растение с E_child;
+  :E -= E_child;
+else (нет)
+endif
+stop
+@enduml
