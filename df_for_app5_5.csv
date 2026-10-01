@@ -1,0 +1,3 @@
+id;name;tariff_id;traffic_mb;cost_strategy
+3;John;3;0.0;NORMAL
+4;Linda;2;0.0;NORMAL

@@ -1,0 +1,3 @@
+id;name;tariff_id;traffic_mb;cost_strategy
+4;Dina;4;0.0;NORMAL
+5;Artem;4;0.0;NORMAL
