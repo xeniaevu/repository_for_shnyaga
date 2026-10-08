@@ -1,0 +1,38 @@
+@startuml
+title Диаграмма прецедентов — «Мышь в лабиринте»
+left to right direction
+actor "Пользователь" as User
+actor "Мышь (агент)" as Mouse <<system>>
+
+rectangle "Программа «Мышь в лабиринте»" {
+  usecase "Задать размер лабиринта" as UC1
+  usecase "Сгенерировать лабиринт (DFS)" as UC2
+  usecase "Редактировать схему вручную" as UC3
+  usecase "Загрузить / сохранить схему" as UC4
+  usecase "Задать награды Z, x, y" as UC5
+  usecase "Задать параметры обучения\n(α, γ, ε, эпизоды)" as UC6
+  usecase "Запустить обучение" as UC7
+  usecase "Пройти эпизод:\nвыбрать ход, получить награду,\nобновить Q-таблицу" as UC8
+  usecase "Просмотреть эпизод\n(эпоха 1 / 50 / 500)" as UC9
+  usecase "Показать найденный путь (ε = 0)" as UC10
+  usecase "Анимировать движение мыши" as UC11
+  usecase "Посмотреть график суммы выигрыша" as UC12
+  usecase "Сохранить скриншот" as UC13
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC9
+User --> UC10
+User --> UC12
+User --> UC13
+UC2 .> UC1 : <<include>>
+UC7 .> UC8 : <<include>>
+UC11 .> UC9 : <<extend>>
+Mouse --> UC8
+@enduml

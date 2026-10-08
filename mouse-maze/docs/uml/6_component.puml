@@ -1,0 +1,30 @@
+@startuml
+title Диаграмма компонентов
+skinparam componentStyle uml2
+
+package "mouse-maze.jar" {
+  [ui\n(MainApp, MazeCanvas)] as UI
+  [training\n(Trainer, Simulation,\nTrainingConfig, EpisodeResult)] as TR
+  [agent\n(QLearningAgent)] as AG
+  [env\n(Environment, RewardConfig,\nStepResult)] as EN
+  [generator\n(MazeGenerator, MazeFileIO)] as GE
+  [model\n(Maze, CellType,\nAction, Position)] as MO
+  [ConsoleDemo] as CD
+}
+[JavaFX\n(javafx-controls, javafx-swing)] as FX
+database "Файл схемы\n*.txt" as F
+artifact "Снимки *.png" as PNG
+
+UI ..> TR : обучение
+UI ..> GE : генерация / файлы
+UI ..> FX
+UI ..> PNG
+CD ..> TR
+CD ..> GE
+TR ..> AG
+TR ..> EN
+EN ..> MO
+GE ..> MO
+AG ..> MO : Action
+GE ..> F
+@enduml

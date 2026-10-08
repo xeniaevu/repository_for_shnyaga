@@ -1,0 +1,37 @@
+@startuml
+title Диаграмма взаимодействий (последовательности) — обучение
+actor Пользователь
+participant "MainApp" as UI
+participant "Simulation" as Sim
+participant "Trainer" as T
+participant "QLearningAgent" as A
+participant "Environment" as E
+participant "MazeCanvas" as C
+
+Пользователь -> UI : «Обучить мышь»
+UI -> Sim : create(maze, rewards, config)
+Sim -> E ** : new Environment(maze, rewards)
+Sim -> A ** : new QLearningAgent(stateCount, α, γ)
+Sim -> T ** : new Trainer(env, agent, config)
+Sim --> UI : trainer
+UI -> T : train(listener, cancelled)  [фоновый поток]
+loop для каждого эпизода e = 1..N
+  T -> E : reset()
+  E --> T : s (старт)
+  loop пока не сыр и шагов < лимита
+    T -> A : chooseAction(s, ε)
+    A --> T : a
+    T -> E : step(a)
+    E --> T : StepResult(s', r, done)
+    T -> A : learn(s, a, r, s', done)
+    note right of A : Q(s,a) += α·[r + γ·maxQ(s') − Q(s,a)]
+  end
+  T -> UI : onEpisodeFinished(result)  — прогресс
+end
+T --> UI : history
+UI -> T : greedyRun()
+T --> UI : найденный путь
+UI -> C : setModel(env, agent)
+UI -> C : showEpisode(bestRun)
+C --> Пользователь : лабиринт с путём и графиком
+@enduml

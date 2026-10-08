@@ -1,0 +1,187 @@
+@startuml
+title Диаграмма классов
+skinparam classAttributeIconSize 0
+hide empty members
+
+package model {
+  enum CellType {
+    EMPTY
+    WALL
+    START
+    CHEESE
+    WATER
+    TRAP
+    +symbol(): char
+    +isPassable(): boolean
+    +fromSymbol(c: char): CellType
+  }
+  enum Action {
+    UP
+    DOWN
+    LEFT
+    RIGHT
+    +dRow(): int
+    +dCol(): int
+  }
+  class Position <<record>> {
+    +row: int
+    +col: int
+    +move(a: Action): Position
+  }
+  class Maze {
+    -rows: int
+    -cols: int
+    -cells: CellType[][]
+    -start: Position
+    -cheese: Position
+    +get(p: Position): CellType
+    +set(p: Position, t: CellType)
+    +isPassable(p: Position): boolean
+    +positionsOf(t: CellType): List<Position>
+    +shortestPathLength(): int
+    +validate(): String
+    +copy(): Maze
+  }
+}
+
+package generator {
+  class MazeGenerator {
+    -random: Random
+    +generate(rows, cols, loops, water, traps): Maze
+    -carveByDfs(maze, from)
+    -addLoops(maze, fraction)
+    -placeItems(maze, water, traps)
+  }
+  class MazeFileIO <<utility>> {
+    +load(path): Maze
+    +parse(lines): Maze
+    +save(maze, path)
+  }
+}
+
+package env {
+  class RewardConfig <<record>> {
+    +cheese: double
+    +water: double
+    +trap: double
+    +stepCost: double
+    +wallPenalty: double
+  }
+  enum StepEvent {
+    MOVE
+    WALL
+    WATER
+    WATER_ALREADY_DRUNK
+    TRAP
+    CHEESE
+  }
+  class StepResult <<record>> {
+    +nextState: int
+    +reward: double
+    +done: boolean
+    +event: StepEvent
+  }
+  class Environment {
+    +MAX_WATER: int = 10
+    -position: Position
+    -drunkMask: int
+    -done: boolean
+    +reset(): int
+    +step(a: Action): StepResult
+    +encode(row, col, mask): int
+    +positionOf(state): Position
+    +maskOf(state): int
+    +stateCount(): int
+  }
+}
+
+package agent {
+  class QLearningAgent {
+    -q: double[]
+    -alpha: double
+    -gamma: double
+    -random: Random
+    +chooseAction(s, epsilon): Action
+    +bestAction(s): Action
+    +learn(s, a, r, s2, terminal): double
+    +maxQ(s): double
+    +getQ(s, a): double
+  }
+}
+
+package training {
+  class TrainingConfig <<record>> {
+    +episodes: int
+    +maxSteps: int
+    +alpha: double
+    +gamma: double
+    +epsilonStart: double
+    +epsilonEnd: double
+    +explorationShare: double
+    +seed: long
+    +epsilonAt(episode): double
+  }
+  class EpisodeResult <<record>> {
+    +episode: int
+    +epsilon: double
+    +totalReward: double
+    +reachedCheese: boolean
+    +states: int[]
+    +rewards: double[]
+    +steps(): int
+  }
+  interface TrainingListener {
+    +onEpisodeFinished(r, total)
+  }
+  class Trainer {
+    +train(listener, cancelled): List<EpisodeResult>
+    +runEpisode(n, epsilon, learn): EpisodeResult
+    +greedyRun(): EpisodeResult
+  }
+  class Simulation <<utility>> {
+    +create(maze, rewards, config): Trainer
+  }
+}
+
+package ui {
+  class MainApp {
+    -maze: Maze
+    -trainer: Trainer
+    -history: List<EpisodeResult>
+    +start(stage)
+    -generateMaze()
+    -startTraining()
+    -showEpisode(r, best)
+    -playAnimation()
+  }
+  class MazeCanvas {
+    +setMaze(maze)
+    +setModel(env, agent)
+    +showEpisode(r, steps, best)
+    +redraw()
+  }
+}
+
+Maze "1" *-- "*" CellType
+Maze ..> Position
+Position ..> Action
+MazeGenerator ..> Maze : создаёт
+MazeFileIO ..> Maze : читает / пишет
+Environment o-- "1" Maze
+Environment o-- "1" RewardConfig
+Environment ..> StepResult : возвращает
+StepResult --> StepEvent
+QLearningAgent ..> Action
+Trainer o-- "1" Environment
+Trainer o-- "1" QLearningAgent
+Trainer o-- "1" TrainingConfig
+Trainer ..> EpisodeResult : создаёт
+Trainer ..> TrainingListener : уведомляет
+Simulation ..> Trainer : собирает
+MainApp *-- "1" MazeCanvas
+MainApp --> Trainer
+MainApp ..> MazeGenerator
+MainApp ..> MazeFileIO
+MazeCanvas --> Maze
+MazeCanvas --> QLearningAgent
+@enduml
